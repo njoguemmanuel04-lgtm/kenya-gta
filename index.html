@@ -2,99 +2,143 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>KENYA GTA V6 - LUXURY CARS</title>
-<style>body{margin:0;overflow:hidden;background:#000}canvas{display:block}
-#hud{position:fixed;top:0;left:0;right:0;padding:8px 12px;background:rgba(0,0,0,0.7);color:#fff;font-family:Arial Black;font-size:12px;display:flex;justify-content:space-between;z-index:99}
-#joy{position:fixed;bottom:25px;left:25px;width:110px;height:110px;border:2px solid #fff;border-radius:50%;z-index:99}
-#knob{position:absolute;width:48px;height:48px;background:#fff;border-radius:50%;left:31px;top:31px}
-#btn{position:fixed;bottom:25px;right:25px;width:75px;height:75px;background:#00A651;border:3px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;z-index:99}
-#garage{position:fixed;top:45px;left:10px;background:rgba(0,0,0,0.8);color:#fff;padding:8px;border-radius:8px;font-size:11px;z-index:99}
+<title>KENYA GTA V8 - MOMBASA INTRO</title>
+<style>
+body{margin:0;overflow:hidden;background:#000;font-family:Impact,Arial Black} canvas{display:block}
+#intro{position:fixed;top:0;left:0;right:0;bottom:0;background:#000;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center}
+#intro h1{font-size:42px;margin:0;color:#ffcc00;text-shadow:4px 4px 0 #000;letter-spacing:2px}
+#intro p{font-family:Arial;font-size:14px;max-width:320px;margin:15px;opacity:0.9}
+#skip{margin-top:20px;padding:10px 25px;background:#ffcc00;color:#000;border:none;border-radius:20px;font-weight:900}
+#hud{position:fixed;top:0;left:0;right:0;padding:8px 10px;background:linear-gradient(rgba(0,0,0,0.8),transparent);color:#fff;display:flex;justify-content:space-between;z-index:10;font-size:11px}
+#joy{position:fixed;bottom:20px;left:20px;width:105px;height:105px;border:2px solid #fff;border-radius:50%;z-index:10}
+#knob{position:absolute;width:44px;height:44px;background:#fff;border-radius:50%;left:30px;top:30px}
+#btn{position:fixed;bottom:20px;right:20px;width:70px;height:70px;background:#00A651;border:3px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;z-index:10}
 </style>
-<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}</script>
 </head>
 <body>
-<div id="hud"><div>💰 KSh <span id="cash">336</span> | GARAGE: FERRARI - AUDI TTS - BENZ</div><div>KWAME</div></div>
-<div id="garage">🔴 Ferrari F8 | ⚪ Audi TTS Coupe | ⬛ Benz AMG Convertible<br>Press E near car to drive</div>
+<div id="intro">
+<h1>GRAND THEFT AUTO<br><span style="color:#fff">MOMBASA</span></h1>
+<p id="story">After 5 years hustling matatus in Nairobi...<br><br>Kwame returns home to Mombasa. Big ships at port, money at beach... but the beach boys run everything now.</p>
+<p style="color:#ffcc00;font-size:12px">NYALI BEACH - 2026 - 3:11 PM</p>
+<button id="skip">SKIP INTRO - ANZA GAME</button>
+</div>
+<div id="hud"><div>💰 KSh 336 | 📍 NYALI BEACH, MOMBASA | 🚢 4 SHIPS DOCKED</div><div>KWAME</div></div>
 <div id="joy"><div id="knob"></div></div><div id="btn">E</div>
 <script type="module">
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-
-const scene=new THREE.Scene(); scene.background=new THREE.Color(0x87CEEB); scene.fog=new THREE.Fog(0x87CEEB,50,250);
-const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,0.1,1000);
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x87CEEB); scene.fog=new THREE.Fog(0x87CEEB,60,300);
+const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1000);
 const renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setSize(innerWidth,innerHeight); renderer.shadowMap.enabled=true; document.body.appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xffffff,0x444444,0.9));
-const sun=new THREE.DirectionalLight(0xffffff,1); sun.position.set(30,50,20); sun.castShadow=true; scene.add(sun);
-const ground=new THREE.Mesh(new THREE.PlaneGeometry(800,800),new THREE.MeshStandardMaterial({color:0x222222})); ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
+scene.add(new THREE.HemisphereLight(0xffffff,0x4488aa,0.8));
+const sun=new THREE.DirectionalLight(0xffffff,0.9); sun.position.set(40,60,20); sun.castShadow=true; scene.add(sun);
 
-// Road
-const road=new THREE.Mesh(new THREE.PlaneGeometry(800,18),new THREE.MeshStandardMaterial({color:0x111111})); road.rotation.x=-Math.PI/2; road.position.y=0.02; scene.add(road);
+// OCEAN - Indian Ocean big
+const ocean=new THREE.Mesh(new THREE.PlaneGeometry(800,800),new THREE.MeshStandardMaterial({color:0x1e90ff,transparent:true,opacity:0.9})); ocean.rotation.x=-Math.PI/2; ocean.position.y=-0.5; ocean.position.z=-80; scene.add(ocean);
+// BEACH SAND - Nyali
+const sand=new THREE.Mesh(new THREE.PlaneGeometry(400,200),new THREE.MeshStandardMaterial({color:0xf4e4bc})); sand.rotation.x=-Math.PI/2; sand.position.y=0.01; sand.position.z=40; sand.receiveShadow=true; scene.add(sand);
+const road=new THREE.Mesh(new THREE.PlaneGeometry(400,12),new THREE.MeshStandardMaterial({color:0x222222})); road.rotation.x=-Math.PI/2; road.position.y=0.03; road.position.z=90; scene.add(road);
 
-// REAL LUXURY CARS - Ferrari, Audi TTS, Benz Convertible - procedural but 90% realistic shape
-function createFerrari(x,z){
+// BIG SHIPS - Cargo ships offshore
+function BigShip(x,z){
   const g=new THREE.Group();
-  const body=new THREE.Mesh(new THREE.BoxGeometry(1.9,0.6,4.5),new THREE.MeshStandardMaterial({color:0xcc0000,metalness:0.6,roughness:0.2})); body.position.y=0.8; body.castShadow=true; g.add(body);
-  const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.7,0.4,2),new THREE.MeshStandardMaterial({color:0x111111})); cabin.position.set(0,1.3,-0.3); g.add(cabin);
-  const nose=new THREE.Mesh(new THREE.BoxGeometry(1.8,0.3,1.2),new THREE.MeshStandardMaterial({color:0xcc0000})); nose.position.set(0,0.7,2.5); g.add(nose);
-  const wGeo=new THREE.CylinderGeometry(0.45,0.45,0.3,16); const wMat=new THREE.MeshStandardMaterial({color:0x111111});
-  [[-1,0.45,-1.2],[1,0.45,-1.2],[-1,0.45,1.2],[1,0.45,1.2]].forEach(p=>{ const w=new THREE.Mesh(wGeo,wMat); w.rotation.z=Math.PI/2; w.position.set(p[0],p[1],p[2]); w.castShadow=true; g.add(w); });
-  g.position.set(x,0,z); g.rotation.y=Math.random(); scene.add(g); return g;
-}
-function createAudiTTS(x,z){
-  const g=new THREE.Group();
-  const body=new THREE.Mesh(new THREE.BoxGeometry(1.8,0.7,4.2),new THREE.MeshStandardMaterial({color:0xeeeeee,metalness:0.7,roughness:0.2})); body.position.y=0.9; body.castShadow=true; g.add(body);
-  const roof=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.5,1.8),new THREE.MeshStandardMaterial({color:0xeeeeee})); roof.position.set(0,1.5,-0.2); g.add(roof);
-  const wGeo=new THREE.CylinderGeometry(0.42,0.42,0.28,16); const wMat=new THREE.MeshStandardMaterial({color:0x222222});
-  [[-0.95,0.42,-1.1],[0.95,0.42,-1.1],[-0.95,0.42,1.1],[0.95,0.42,1.1]].forEach(p=>{ const w=new THREE.Mesh(wGeo,wMat); w.rotation.z=Math.PI/2; w.position.set(p[0],p[1],p[2]); g.add(w); });
+  const hull=new THREE.Mesh(new THREE.BoxGeometry(12,4,40),new THREE.MeshStandardMaterial({color:0x1a2a3a})); hull.position.y=2; hull.castShadow=true; g.add(hull);
+  const bridge=new THREE.Mesh(new THREE.BoxGeometry(6,5,8),new THREE.MeshStandardMaterial({color:0xeeeeee})); bridge.position.set(0,5.5,-12); g.add(bridge);
+  // colorful containers
+  for(let i=0;i<6;i++){ for(let j=0;j<2;j++){ const cont=new THREE.Mesh(new THREE.BoxGeometry(2,2,3.5),new THREE.MeshStandardMaterial({color:new THREE.Color().setHSL(Math.random()*0.3+0.05,0.8,0.5)})); cont.position.set((j-0.5)*2.2,4.5,(i-2.5)*4); g.add(cont); }}
   g.position.set(x,0,z); scene.add(g); return g;
 }
-function createBenzConvertible(x,z){
+const ships=[BigShip(-80, -60),BigShip(60,-90),BigShip(0,-140),BigShip(-40,-200)];
+
+// Dhow boats near beach - Mombasa style
+function Dhow(x,z){
   const g=new THREE.Group();
-  const body=new THREE.Mesh(new THREE.BoxGeometry(2,0.8,4.8),new THREE.MeshStandardMaterial({color:0x222222,metalness:0.5,roughness:0.3})); body.position.y=0.85; body.castShadow=true; g.add(body);
-  const seats=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.4,1.2),new THREE.MeshStandardMaterial({color:0x8B4513})); seats.position.set(0,1.2,-0.3); g.add(seats);
-  const wind=new THREE.Mesh(new THREE.BoxGeometry(1.7,0.6,0.05),new THREE.MeshStandardMaterial({color:0x88ccff,transparent:true,opacity:0.4})); wind.position.set(0,1.4,0.4); wind.rotation.x=0.3; g.add(wind);
-  const wGeo=new THREE.CylinderGeometry(0.48,0.48,0.32,16); const wMat=new THREE.MeshStandardMaterial({color:0x111111});
-  [[-1.05,0.48,-1.3],[1.05,0.48,-1.3],[-1.05,0.48,1.3],[1.05,0.48,1.3]].forEach(p=>{ const w=new THREE.Mesh(wGeo,wMat); w.rotation.z=Math.PI/2; w.position.set(p[0],p[1],p[2]); g.add(w); });
-  g.position.set(x,0,z); scene.add(g); return g;
+  const hull=new THREE.Mesh(new THREE.BoxGeometry(2,1,7),new THREE.MeshStandardMaterial({color:0x5c3a21})); hull.position.y=0.5; g.add(hull);
+  const sail=new THREE.Mesh(new THREE.PlaneGeometry(4,5),new THREE.MeshStandardMaterial({color:0xe0d5c0,side:THREE.DoubleSide})); sail.position.set(0,3.5,0); sail.rotation.y=Math.PI/6; g.add(sail);
+  g.position.set(x,0.2,z); scene.add(g); return g;
+}
+const dhows=[Dhow(-10,5),Dhow(5,0),Dhow(18,8)];
+
+// Palm trees
+function Palm(x,z){
+  const g=new THREE.Group();
+  const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.3,6),new THREE.MeshStandardMaterial({color:0x4a3a2a})); trunk.position.y=3; g.add(trunk);
+  const leaves=new THREE.Mesh(new THREE.SphereGeometry(1.8,6,6),new THREE.MeshStandardMaterial({color:0x2d8a4e})); leaves.position.y=6.5; g.add(leaves);
+  g.position.set(x,0,z); scene.add(g);
+}
+for(let i=0;i<15;i++) Palm((Math.random()-0.5)*120, Math.random()*60+10);
+
+// BEACH PEOPLE - 30 people sunbathing, swimming
+const beachPeople=[];
+for(let i=0;i<30;i++){
+  const g=new THREE.Group();
+  const isSwim=Math.random()>0.7;
+  const skin=new THREE.MeshStandardMaterial({color:new THREE.Color().setHSL(Math.random()*0.1+0.05,0.6,0.6)});
+  const body=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.3,1.4),isSwim?new THREE.MeshStandardMaterial({color:0x00aabb}):skin); body.position.y=isSwim?0.1:0.2; body.castShadow=true; g.add(body);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.25,8,8),skin); head.position.set(0,0.3,0.8); g.add(head);
+  if(!isSwim){ const towel=new THREE.Mesh(new THREE.PlaneGeometry(1,2),new THREE.MeshStandardMaterial({color:new THREE.Color().setHSL(Math.random(),0.8,0.6)})); towel.rotation.x=-Math.PI/2; towel.position.y=0.02; g.add(towel); }
+  g.position.set((Math.random()-0.5)*100, isSwim?-0.3:0.05, Math.random()*70-10); g.rotation.y=Math.random()*Math.PI; scene.add(g); beachPeople.push(g);
 }
 
-const cars=[createFerrari(10,0),createAudiTTS(-12,8),createBenzConvertible(15,-10),createFerrari(-15,-10)];
+// Cars at beach - Ferrari, Audi TTS, Benz convertible parked
+function SimpleCar(x,z,col){
+  const g=new THREE.Group();
+  const b=new THREE.Mesh(new THREE.BoxGeometry(1.8,0.6,4),new THREE.MeshStandardMaterial({color:col,metalness:0.4})); b.position.y=0.6; b.castShadow=true; g.add(b);
+  g.position.set(x,0,z); scene.add(g); return g;
+}
+const cars=[SimpleCar(25,85,0xcc0000),SimpleCar(30,85,0xeeeeee),SimpleCar(35,85,0x111111)];
 
-// Try to load REAL Ferrari GLB model (if internet good, this will be 100% realistic)
-const loader=new GLTFLoader();
-loader.load('https://threejs.org/examples/models/gltf/ferrari.glb', (gltf)=>{
-  const realFerrari=gltf.scene; realFerrari.scale.set(1.8,1.8,1.8); realFerrari.position.set(0,0,20); realFerrari.traverse(o=>{ if(o.isMesh) o.castShadow=true; }); scene.add(realFerrari); cars.push(realFerrari);
-  document.getElementById('garage').innerHTML+='<br>✅ REAL Ferrari model loaded!';
-}, undefined, ()=>{ console.log('Ferrari GLB failed, using custom'); });
+// Kwame - arrives at beach
+const kwame=new THREE.Group();
+const kh=new THREE.Mesh(new THREE.SphereGeometry(0.35,10,10),new THREE.MeshStandardMaterial({color:0x8d5524})); kh.position.y=1.6; kwame.add(kh);
+const kb=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.7,0.3),new THREE.MeshStandardMaterial({color:0x111111})); kb.position.y=1; kwame.add(kb);
+kwame.position.set(0,0,35); scene.add(kwame);
 
-// Kwame
-const kwame=new THREE.Group(); const head=new THREE.Mesh(new THREE.SphereGeometry(0.4,12,12),new THREE.MeshStandardMaterial({color:0x8d5524})); head.position.y=1.7; kwame.add(head); const body=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.8,0.35),new THREE.MeshStandardMaterial({color:0x111111})); body.position.y=1; kwame.add(body); const legs=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.9,0.3),new THREE.MeshStandardMaterial({color:0x222222})); legs.position.y=0.15; kwame.add(legs); kwame.position.set(0,0,5); scene.add(kwame);
-
-let keys={}, joyX=0, joyY=0, inCar=false, curCar=null;
-function animate(){
-  requestAnimationFrame(animate);
-  if(!inCar){
-    let mx=joyX, my=joyY; if(keys['w']) my=-1; if(keys['s']) my=1; if(keys['a']) mx=-1; if(keys['d']) mx=1;
-    if(mx||my){ kwame.rotation.y=Math.atan2(mx,-my); kwame.position.x+=mx*0.13; kwame.position.z+=my*0.13; }
-    camera.position.x+= (kwame.position.x - camera.position.x)*0.1; camera.position.z+= (kwame.position.z+10 - camera.position.z)*0.1; camera.position.y=4; camera.lookAt(kwame.position);
-  } else if(curCar){
-    let acc=0; if(keys['w']||joyY<-0.2) acc=0.1; if(keys['s']||joyY>0.2) acc=-0.06; curCar.userData.speed=(curCar.userData.speed||0)+acc; curCar.userData.speed*=0.98;
-    curCar.rotation.y+=joyX*0.05; if(keys['a']) curCar.rotation.y+=0.05; if(keys['d']) curCar.rotation.y-=0.05;
-    curCar.position.x+=Math.sin(curCar.rotation.y)*curCar.userData.speed; curCar.position.z+=Math.cos(curCar.rotation.y)*curCar.userData.speed;
-    kwame.position.copy(curCar.position); kwame.visible=false;
-    camera.position.x+= (curCar.position.x + Math.sin(curCar.rotation.y)*-12 - camera.position.x)*0.1; camera.position.z+= (curCar.position.z + Math.cos(curCar.rotation.y)*-12 - camera.position.z)*0.1; camera.lookAt(curCar.position);
-  }
+// INTRO CUTSCENE - San Andreas style
+let introTime=0; let introActive=true; let keys={}, joyX=0, joyY=0, inCar=false, curCar=null;
+const storyTexts=["After 5 years hustling matatus in Nairobi...","Kwame returns home to Mombasa...","Big ships at Kilindini Harbour... billions in containers...","But Nyali Beach boys control the coast now.","Welcome to MOMBASA.",""];
+function introAnimate(){
+  if(!introActive) return;
+  introTime+=0.016;
+  if(introTime<3){ camera.position.set(0,40,-120); camera.lookAt(0,0,-80); document.getElementById('story').innerText=storyTexts[0]; }
+  else if(introTime<6){ camera.position.set(-20+introTime*2,25,-80+introTime*3); camera.lookAt(ships[0].position); document.getElementById('story').innerText=storyTexts[1]; }
+  else if(introTime<9){ camera.position.set(30,15,0); camera.lookAt(0,0,20); document.getElementById('story').innerText=storyTexts[2]; }
+  else if(introTime<12){ camera.position.set(10,8,30); camera.lookAt(kwame.position); document.getElementById('story').innerText=storyTexts[3]; }
+  else { endIntro(); return; }
   renderer.render(scene,camera);
+  requestAnimationFrame(introAnimate);
 }
-animate();
+function endIntro(){ introActive=false; document.getElementById('intro').style.display='none'; gameLoop(); }
+document.getElementById('skip').onclick=endIntro;
+introAnimate();
+
+function gameLoop(){
+  function animate(){
+    requestAnimationFrame(animate);
+    if(!inCar){
+      let mx=joyX, my=joyY; if(keys['w']) my=-1; if(keys['s']) my=1; if(keys['a']) mx=-1; if(keys['d']) mx=1;
+      if(mx||my){ kwame.rotation.y=Math.atan2(mx,-my); kwame.position.x+=mx*0.15; kwame.position.z+=my*0.15; }
+      camera.position.x+=(kwame.position.x - camera.position.x)*0.1; camera.position.z+=(kwame.position.z+12 - camera.position.z)*0.1; camera.position.y=5; camera.lookAt(kwame.position);
+    } else if(curCar){
+      let acc=0; if(keys['w']||joyY<-0.2) acc=0.1; curCar.userData.speed=(curCar.userData.speed||0)+acc; curCar.userData.speed*=0.97; curCar.rotation.y+=joyX*0.06;
+      curCar.position.x+=Math.sin(curCar.rotation.y)*curCar.userData.speed; curCar.position.z+=Math.cos(curCar.rotation.y)*curCar.userData.speed;
+      kwame.position.copy(curCar.position); kwame.visible=false;
+      camera.position.x+=(curCar.position.x+Math.sin(curCar.rotation.y)*-12 - camera.position.x)*0.1; camera.position.z+=(curCar.position.z+Math.cos(curCar.rotation.y)*-12 - camera.position.z)*0.1; camera.lookAt(curCar.position);
+    }
+    // animate ocean waves
+    ocean.position.y=-0.5+Math.sin(Date.now()*0.001)*0.2;
+    renderer.render(scene,camera);
+  }
+  animate();
+}
 window.addEventListener('keydown',e=>keys[e.key.toLowerCase()]=true); window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
 document.getElementById('btn').onclick=()=>{
   if(inCar){ inCar=false; kwame.visible=true; kwame.position.x=curCar.position.x+2; curCar=null; return; }
   let c=null,d=5; cars.forEach(car=>{ const dist=car.position.distanceTo(kwame.position); if(dist<d){d=dist;c=car;} }); if(c){ inCar=true; curCar=c; }
 };
 const joy=document.getElementById('joy'), knob=document.getElementById('knob');
-function moveJoy(e){ const r=joy.getBoundingClientRect(); const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left-55; const y=(e.touches?e.touches[0].clientY:e.clientY)-r.top-55; const l=Math.sqrt(x*x+y*y); let nx=x,ny=y; if(l>42){ nx=x/l*42; ny=y/l*42; } knob.style.left=31+nx+'px'; knob.style.top=31+ny+'px'; joyX=nx/42; joyY=ny/42; }
-joy.addEventListener('touchmove',e=>{e.preventDefault(); moveJoy(e);}); joy.addEventListener('touchend',()=>{ knob.style.left='31px'; knob.style.top='31px'; joyX=0; joyY=0; });
+function handle(e){ const r=joy.getBoundingClientRect(); const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left-52; const y=(e.touches?e.touches[0].clientY:e.clientY)-r.top-52; let nx=x,ny=y; const l=Math.sqrt(nx*nx+ny*ny); if(l>38){ nx=nx/l*38; ny=ny/l*38; } knob.style.left=30+nx+'px'; knob.style.top=30+ny+'px'; joyX=nx/38; joyY=ny/38; }
+joy.addEventListener('touchmove',e=>{e.preventDefault(); handle(e);}); joy.addEventListener('touchend',()=>{ knob.style.left='30px'; knob.style.top='30px'; joyX=0; joyY=0; });
 </script>
 </body>
 </html>
