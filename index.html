@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KENYA GTA - NAIROBI HUSTLE</title>
+<style>
+body{margin:0;background:#000;overflow:hidden;font-family:Arial Black;color:#fff}
+#game{width:100vw;height:100vh;display:block}
+#hud{position:fixed;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;font-size:14px}
+#controls{position:fixed;bottom:20px;left:0;right:0;display:flex;justify-content:center;gap:20px}
+.btn{width:70px;height:70px;background:rgba(255,255,255,0.2);border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px}
+#msg{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#00A651;padding:20px;border-radius:10px;display:none;font-weight:bold}
+</style>
+</head>
+<body>
+<div id="hud">
+  <div>💰 KSh <span id="cash">0</span></div>
+  <div>⭐ Wanted: <span id="stars">0</span></div>
+  <div id="carStatus">🚶 ON FOOT</div>
+</div>
+<canvas id="game"></canvas>
+<div id="controls">
+  <div class="btn" id="left">◀</div>
+  <div class="btn" id="up">▲</div>
+  <div class="btn" id="down">▼</div>
+  <div class="btn" id="right">▶</div>
+  <div class="btn" id="action" style="background:#00A651">E</div>
+</div>
+<div id="msg">POA! UMEINGIA MATATU!</div>
+
+<script>
+const canvas=document.getElementById('game'); const ctx=canvas.getContext('2d');
+canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+
+let player={x:500,y:500,speed:3,angle:0,inCar:false,car:null}
+let keys={}
+let cash=0; let wanted=0;
+let matatus=[
+  {x:600,y:400,w:80,h:40,color:'#ffeb3b',speed:0,angle:0,plate:'KDA 47X NAI HUSTLE'},
+  {x:300,y:700,w:90,h:45,color:'#00A651',speed:0,angle:0,plate:'KCA 123Z'},
+  {x:800,y:800,w:70,h:35,color:'#0A3D62',speed:0,angle:0,plate:'KCB 007'}
+];
+let buildings=[];
+for(let i=0;i<20;i++) buildings.push({x:Math.random()*1500,y:Math.random()*1500,w:100+Math.random()*150,h:100+Math.random()*150})
+
+function drawMap(){
+  ctx.fillStyle='#222'; ctx.fillRect(-player.x+canvas.width/2,-player.y+canvas.height/2,2000,2000);
+  // roads
+  ctx.fillStyle='#444'; 
+  ctx.fillRect(-player.x+canvas.width/2, -player.y+canvas.height/2+400, 2000, 100);
+  ctx.fillRect(-player.x+canvas.width/2+600, -player.y+canvas.height/2, 100, 2000);
+  // buildings
+  ctx.fillStyle='#333';
+  buildings.forEach(b=>{
+    ctx.fillRect(b.x-player.x+canvas.width/2,b.y-player.y+canvas.height/2,b.w,b.h)
+  })
+}
+function drawPlayer(){
+  ctx.save(); ctx.translate(canvas.width/2,canvas.height/2); ctx.rotate(player.angle);
+  if(!player.inCar){ ctx.fillStyle='#fff'; ctx.fillRect(-10,-10,20,20); }
+  ctx.restore();
+}
+function drawCars(){
+  matatus.forEach(m=>{
+    ctx.save(); ctx.translate(m.x-player.x+canvas.width/2,m.y-player.y+canvas.height/2); ctx.rotate(m.angle);
+    ctx.fillStyle=m.color; ctx.fillRect(-m.w/2,-m.h/2,m.w,m.h);
+    ctx.fillStyle='#000'; ctx.font='8px Arial'; ctx.fillText(m.plate,-30,0);
+    ctx.restore();
+  })
+}
+function update(){
+  if(!player.inCar){
+    if(keys['ArrowUp']||keys['w']) { player.y-=player.speed; player.angle=-Math.PI/2 }
+    if(keys['ArrowDown']||keys['s']) { player.y+=player.speed; player.angle=Math.PI/2 }
+    if(keys['ArrowLeft']||keys['a']) { player.x-=player.speed; player.angle=Math.PI }
+    if(keys['ArrowRight']||keys['d']) { player.x+=player.speed; player.angle=0 }
+  } else {
+    let car=player.car;
+    if(keys['ArrowUp']||keys['w']) car.speed+=0.3;
+    if(keys['ArrowDown']||keys['s']) car.speed-=0.3;
+    if(keys['ArrowLeft']||keys['a']) car.angle-=0.05;
+    if(keys['ArrowRight']||keys['d']) car.angle+=0.05;
+    car.speed*=0.98;
+    car.x+=Math.cos(car.angle)*car.speed;
+    car.y+=Math.sin(car.angle)*car.speed;
+    player.x=car.x; player.y=car.y; player.angle=car.angle;
+    if(Math.abs(car.speed)>1) { cash+=1; document.getElementById('cash').innerText=cash }
+  }
+}
+function checkEnter(){
+  if(player.inCar){ 
+    player.inCar=false; player.car=null; 
+    document.getElementById('carStatus').innerText='🚶 ON FOOT';
+    return;
+  }
+  matatus.forEach(m=>{
+    let dist=Math.hypot(m.x-player.x,m.y-player.y);
+    if(dist<60){
+      player.inCar=true; player.car=m; 
+      document.getElementById('carStatus').innerText='🚐 MATATU: '+m.plate;
+      let msg=document.getElementById('msg'); msg.style.display='block'; msg.innerText='POA! UMEINGIA MATATU - ENDA!'; setTimeout(()=>msg.style.display='none',1500);
+    }
+  })
+}
+function loop(){ ctx.clearRect(0,0,canvas.width,canvas.height); drawMap(); drawCars(); drawPlayer(); update(); requestAnimationFrame(loop) }
+window.addEventListener('keydown',e=>keys[e.key]=true); window.addEventListener('keyup',e=>keys[e.key]=false);
+document.getElementById('action').onclick=checkEnter;
+document.getElementById('left').ontouchstart=()=>keys['ArrowLeft']=true; document.getElementById('left').ontouchend=()=>keys['ArrowLeft']=false;
+document.getElementById('right').ontouchstart=()=>keys['ArrowRight']=true; document.getElementById('right').ontouchend=()=>keys['ArrowRight']=false;
+document.getElementById('up').ontouchstart=()=>keys['ArrowUp']=true; document.getElementById('up').ontouchend=()=>keys['ArrowUp']=false;
+document.getElementById('down').ontouchstart=()=>keys['ArrowDown']=true; document.getElementById('down').ontouchend=()=>keys['ArrowDown']=false;
+loop();
+</script>
+</body>
+</html>
