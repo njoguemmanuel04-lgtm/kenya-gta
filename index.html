@@ -1,109 +1,147 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>KENYA GTA V9 - REAL MOMBASA</title>
-<style>body{margin:0;overflow:hidden;background:#000}canvas{display:block}
-#hud{position:fixed;top:0;left:0;right:0;padding:8px;background:rgba(0,0,0,0.7);color:#fff;font-family:Arial Black;font-size:11px;display:flex;justify-content:space-between;z-index:10}
-#joy{position:fixed;bottom:20px;left:20px;width:110px;height:110px;border:2px solid #fff;border-radius:50%;z-index:10}
-#knob{position:absolute;width:46px;height:46px;background:#fff;border-radius:50%;left:32px;top:32px}
-#btn{position:fixed;bottom:20px;right:20px;width:70px;height:70px;background:#ffcc00;border:3px solid #000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;z-index:10}
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>KENYA GTA V10 - PAYBACK EDITION</title>
+<style>
+body{margin:0;background:#111;overflow:hidden;font-family:Arial Black} canvas{display:block;width:100vw;height:100vh}
+#hud{position:fixed;top:0;left:0;right:0;background:linear-gradient(#000,#0000);padding:8px 10px;color:#fff;display:flex;justify-content:space-between;font-size:12px;z-index:10}
+#mission{position:fixed;top:40px;left:10px;right:10px;background:rgba(255,204,0,0.9);color:#000;padding:8px;border-radius:8px;font-size:12px;z-index:10;text-align:center}
+#controls{position:fixed;bottom:10px;left:0;right:0;display:flex;justify-content:space-between;padding:0 15px;z-index:10}
+#joy{width:110px;height:110px;border:2px solid rgba(255,255,255,0.7);border-radius:50%;position:relative}
+#knob{width:46px;height:46px;background:#fff;border-radius:50%;position:absolute;left:32px;top:32px}
+.btn{width:58px;height:58px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:20px;margin:5px}
 </style>
-<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}</script>
 </head>
 <body>
-<div id="hud"><div>📍 NYALI BEACH | 🚢 Ships: 4 | 🏖️ People: 30</div><div>KWAME</div></div>
-<div id="joy"><div id="knob"></div></div><div id="btn">E</div>
-<script type="module">
-import * as THREE from 'three';
-const scene=new THREE.Scene(); scene.background=new THREE.Color(0x87D3FF); scene.fog=new THREE.Fog(0x87D3FF,50,280);
-const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1000);
-const renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setSize(innerWidth,innerHeight); renderer.shadowMap.enabled=true; document.body.appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xffffff,0x222222,0.9));
-const sun=new THREE.DirectionalLight(0xfff5aa,1); sun.position.set(30,50,10); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); scene.add(sun);
+<div id="hud"><div>💰 KSh <span id="cash">336</span> | ❤️ <span id="hp">100</span> | ⭐ <span id="wanted">0</span></div><div>📍 NYALI BEACH</div></div>
+<div id="mission">🎯 PAYBACK MISSION 1: Steal the Ferrari from beach boys and deliver to Koinange! Press E near car</div>
+<canvas id="game"></canvas>
+<div id="controls">
+<div id="joy"><div id="knob"></div></div>
+<div style="display:flex;flex-direction:column">
+<div style="display:flex"><div class="btn" id="enter" style="background:#00A651">E</div><div class="btn" id="shoot" style="background:#cc0000">🔫</div></div>
+<div style="display:flex"><div class="btn" id="brake" style="background:#ff9800">B</div><div class="btn" id="horn" style="background:#2196F3">📯</div></div>
+</div>
+</div>
+<script>
+const canvas=document.getElementById('game'); const ctx=canvas.getContext('2d');
+function resize(){ canvas.width=innerWidth; canvas.height=innerHeight; } resize(); onresize=resize;
 
-// REAL SAND texture with noise - not flat beige
-const sandCanvas=document.createElement('canvas'); sandCanvas.width=256; sandCanvas.height=256;
-const sctx=sandCanvas.getContext('2d'); sctx.fillStyle='#e8d5a3'; sctx.fillRect(0,0,256,256); for(let i=0;i<2000;i++){sctx.fillStyle=Math.random()>0.5?'#d4c08e':'#f5e8c0'; sctx.fillRect(Math.random()*256,Math.random()*256,2,2)}
-const sandTex=new THREE.CanvasTexture(sandCanvas); sandTex.wrapS=sandTex.wrapT=THREE.RepeatWrapping; sandTex.repeat.set(10,10);
-const sand=new THREE.Mesh(new THREE.PlaneGeometry(400,200),new THREE.MeshStandardMaterial({map:sandTex})); sand.rotation.x=-Math.PI/2; sand.position.y=0; sand.position.z=30; sand.receiveShadow=true; scene.add(sand);
+let cash=336, hp=100, wanted=0;
+let player={x:500,y:500,angle:0,speed:0,inCar:false,car:null,hasGun:true};
 
-// OCEAN with waves color
-const ocean=new THREE.Mesh(new THREE.PlaneGeometry(800,800),new THREE.MeshStandardMaterial({color:0x0a7abf,transparent:true,opacity:0.95})); ocean.rotation.x=-Math.PI/2; ocean.position.y=-0.3; ocean.position.z=-150; scene.add(ocean);
+// PAYBACK STYLE MAP - Mombasa roads
+const buildings=[]; for(let i=0;i<35;i++) buildings.push({x:Math.random()*2000,y:Math.random()*2000,w:90+Math.random()*100,h:90+Math.random()*100});
+const roads=[{x:0,y:450,w:2000,h:24},{x:600,y:0,w:24,h:2000},{x:0,y:900,w:2000,h:20},{x:1200,y:0,w:20,h:2000}];
 
-// BIG CARGO SHIP - now with REAL containers stacked, bridge with windows
-function RealShip(x,z){
-  const g=new THREE.Group();
-  const hull=new THREE.Mesh(new THREE.BoxGeometry(14,6,55),new THREE.MeshStandardMaterial({color:0x1a2535})); hull.position.y=3; hull.castShadow=true; g.add(hull);
-  const deck=new THREE.Mesh(new THREE.BoxGeometry(13,0.5,52),new THREE.MeshStandardMaterial({color:0x2a3a4a})); deck.position.y=6; g.add(deck);
-  const bridge=new THREE.Mesh(new THREE.BoxGeometry(9,8,10),new THREE.MeshStandardMaterial({color:0xdddddd})); bridge.position.set(0,10.5,-18); bridge.castShadow=true; g.add(bridge);
-  // windows on bridge
-  for(let i=0;i<3;i++){ const win=new THREE.Mesh(new THREE.BoxGeometry(2,1.5,0.2),new THREE.MeshStandardMaterial({color:0x87CEEB})); win.position.set((i-1)*2.5,11,-13); g.add(win); }
-  // containers - colorful like real Mombasa port
-  const colors=[0xff0000,0x00aa00,0x0044ff,0xffaa00,0xaa00ff];
-  for(let i=0;i<8;i++){ for(let j=0;j<3;j++){ const c=new THREE.Mesh(new THREE.BoxGeometry(2.2,2.2,4),new THREE.MeshStandardMaterial({color:colors[(i+j)%5]})); c.position.set((j-1)*2.4,7.5,(i-3.5)*5); c.castShadow=true; g.add(c); }}
-  g.position.set(x,0,z); scene.add(g); return g;
-}
-const ships=[RealShip(-90,-80),RealShip(70,-110),RealShip(10,-180),RealShip(-40,-260)];
+// CARS - Payback style sprites - Ferrari, Audi TTS, Benz, Matatu, Police
+const cars=[
+{x:560,y:520,w:36,h:18,color:'#cc0000',type:'Ferrari F8',speed:0,angle:-0.5,topSpeed:8,plate:'KCF 007F'},
+{x:650,y:600,w:32,h:16,color:'#eeeeee',type:'Audi TTS',speed:0,angle:0.2,topSpeed:6.5,plate:'KDA 47X'},
+{x:700,y:480,w:38,h:18,color:'#111111',type:'Benz Conv',speed:0,angle:1,topSpeed:7,plate:'KCB 001M'},
+{x:400,y:700,w:44,h:20,color:'#ffeb3b',type:'Matatu',speed:0,angle:0,topSpeed:4.5,plate:'KDA 33N'},
+{x:800,y:800,w:36,h:18,color:'#ffffff',type:'Police',speed:0,angle:0,topSpeed:6,plate:'GKA 001P'}
+];
 
-// PALM TREE - now with real trunk texture and big leaves
-function RealPalm(x,z){
-  const g=new THREE.Group();
-  const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.4,8,8),new THREE.MeshStandardMaterial({color:0x5a3d26})); trunk.position.y=4; trunk.castShadow=true; g.add(trunk);
-  // leaves - 6 planes around
-  for(let i=0;i<6;i++){ const leaf=new THREE.Mesh(new THREE.PlaneGeometry(1,4),new THREE.MeshStandardMaterial({color:0x1a7a2a,side:THREE.DoubleSide})); leaf.position.set(Math.sin(i*Math.PI/3)*0.8,8,Math.cos(i*Math.PI/3)*0.8); leaf.rotation.y=i*Math.PI/3; leaf.rotation.x=-0.5; g.add(leaf); }
-  const coconuts=new THREE.Mesh(new THREE.SphereGeometry(0.2,6,6),new THREE.MeshStandardMaterial({color:0x4a3319})); coconuts.position.y=7.2; g.add(coconuts);
-  g.position.set(x,0,z); scene.add(g);
-}
-for(let i=0;i<12;i++) RealPalm((Math.random()-0.5)*100, Math.random()*50+5);
+let people=[]; for(let i=0;i<25;i++) people.push({x:Math.random()*2000,y:Math.random()*2000,angle:Math.random()*6,speed:0.3+Math.random()*0.6,color:`hsl(${Math.random()*60+10},70%,50%)`,type:Math.random()>0.5?'beach':'walk'});
 
-// BEACH PEOPLE - BIG enough to see, with towels and colors
-for(let i=0;i<30;i++){
-  const g=new THREE.Group();
-  const towelCol=new THREE.Color().setHSL(Math.random(),0.8,0.6);
-  const towel=new THREE.Mesh(new THREE.PlaneGeometry(1.5,2.5),new THREE.MeshStandardMaterial({color:towelCol})); towel.rotation.x=-Math.PI/2; towel.position.y=0.01; g.add(towel);
-  const body=new THREE.Mesh(new THREE.CapsuleGeometry(0.25,1,4,8),new THREE.MeshStandardMaterial({color:new THREE.Color().setHSL(0.08,0.5,0.6)})); body.rotation.x=Math.PI/2; body.position.y=0.25; body.castShadow=true; g.add(body);
-  const head=new THREE.Mesh(new THREE.SphereGeometry(0.22,8,8),new THREE.MeshStandardMaterial({color:0x8d5524})); head.position.set(0,0.3,0.7); g.add(head);
-  g.position.set((Math.random()-0.5)*80,0,Math.random()*60); g.rotation.y=Math.random()*Math.PI; scene.add(g);
+let bullets=[]; let keys={}; let joyX=0, joyY=0;
+
+function drawCar(c,isPlayer){
+  ctx.save(); ctx.translate(c.x-player.x+canvas.width/2,c.y-player.y+canvas.height/2); ctx.rotate(c.angle);
+  // body with shading - Payback style
+  ctx.fillStyle=c.color; ctx.fillRect(-c.w/2,-c.h/2,c.w,c.h);
+  ctx.fillStyle='rgba(0,0,0,0.3)'; ctx.fillRect(-c.w/2+2,-c.h/2+2,c.w-4,c.h-8);
+  // windshield
+  ctx.fillStyle='#87CEEB'; ctx.fillRect(-c.w/4,-c.h/2+2,c.w/2,4);
+  // headlights
+  ctx.fillStyle='#ffffaa'; ctx.fillRect(c.w/2-3,-c.h/2+2,3,3); ctx.fillRect(c.w/2-3,c.h/2-5,3,3);
+  // brake lights
+  ctx.fillStyle='#ff0000'; ctx.fillRect(-c.w/2,-c.h/2+2,2,3); ctx.fillRect(-c.w/2,c.h/2-5,2,3);
+  if(isPlayer){ ctx.strokeStyle='#00ff00'; ctx.lineWidth=2; ctx.strokeRect(-c.w/2-2,-c.h/2-2,c.w+4,c.h+4); }
+  ctx.restore();
+  // plate
+  ctx.fillStyle='#fff'; ctx.font='8px Arial'; ctx.fillText(c.plate,c.x-player.x+canvas.width/2-18,c.y-player.y+canvas.height/2+22);
 }
 
-// CARS - now low, wide, with spoiler and rims - NOT bricks
-function Ferrari(x,z){
-  const g=new THREE.Group();
-  const b=new THREE.Mesh(new THREE.BoxGeometry(2,0.45,4.4),new THREE.MeshPhysicalMaterial({color:0xc00000,metalness:0.4,clearcoat:1})); b.position.y=0.5; b.castShadow=true; g.add(b);
-  const up=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.35,1.2),new THREE.MeshStandardMaterial({color:0x111111})); up.position.set(0,0.9,-0.3); g.add(up);
-  const spoiler=new THREE.Mesh(new THREE.BoxGeometry(2,0.07,0.3),new THREE.MeshStandardMaterial({color:0x111111})); spoiler.position.set(0,0.85,-2.2); g.add(spoiler);
-  const w=new THREE.CylinderGeometry(0.32,0.32,0.25,16); const wm=new THREE.MeshStandardMaterial({color:0x111111});
-  [[-1,0.32,-1.2],[1,0.32,-1.2],[-1,0.32,1.2],[1,0.32,1.2]].forEach(p=>{ const wheel=new THREE.Mesh(w,wm); wheel.rotation.z=Math.PI/2; wheel.position.set(p[0],p[1],p[2]); g.add(wheel); });
-  g.position.set(x,0,z); scene.add(g); return g;
-}
-const cars=[Ferrari(22,85,0xcc0000),Ferrari(28,85,0xffffff),Ferrari(34,85,0x111111)];
-
-const kwame=new THREE.Group(); const kh=new THREE.Mesh(new THREE.SphereGeometry(0.35,10,10),new THREE.MeshStandardMaterial({color:0x8d5524})); kh.position.y=1.6; kwame.add(kh); const kb=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.7,0.3),new THREE.MeshStandardMaterial({color:0x111111})); kb.position.y=1; kwame.add(kb); kwame.position.set(0,0,35); scene.add(kwame);
-
-let keys={}, joyX=0, joyY=0, inCar=false, curCar=null;
-function animate(){
-  requestAnimationFrame(animate);
-  if(!inCar){
-    let mx=joyX, my=joyY; if(keys['w']) my=-1; if(keys['s']) my=1; if(keys['a']) mx=-1; if(keys['d']) mx=1;
-    if(mx||my){ kwame.rotation.y=Math.atan2(mx,-my); kwame.position.x+=mx*0.14; kwame.position.z+=my*0.14; }
-    camera.position.x+=(kwame.position.x - camera.position.x)*0.1; camera.position.z+=(kwame.position.z+12 - camera.position.z)*0.1; camera.position.y=5; camera.lookAt(kwame.position);
-  } else if(curCar){
-    let acc=0; if(keys['w']||joyY<-0.2) acc=0.11; curCar.userData.speed=(curCar.userData.speed||0)+acc; curCar.userData.speed*=0.97; curCar.rotation.y+=joyX*0.06;
-    curCar.position.x+=Math.sin(curCar.rotation.y)*curCar.userData.speed; curCar.position.z+=Math.cos(curCar.rotation.y)*curCar.userData.speed;
-    kwame.position.copy(curCar.position); kwame.visible=false;
-    camera.position.x+=(curCar.position.x+Math.sin(curCar.rotation.y)*-10 - camera.position.x)*0.1; camera.position.z+=(curCar.position.z+Math.cos(curCar.rotation.y)*-10 - camera.position.z)*0.1; camera.lookAt(curCar.position);
+function draw(){
+  ctx.fillStyle='#c2b280'; ctx.fillRect(0,0,canvas.width,canvas.height); // sand
+  ctx.fillStyle='#0a7abf'; ctx.fillRect(-player.x+canvas.width/2,-player.y+canvas.height/2-200,2000,400); // ocean top
+  // roads
+  ctx.fillStyle='#1a1a1a'; roads.forEach(r=>{ ctx.fillRect(r.x-player.x+canvas.width/2,r.y-player.y+canvas.height/2,r.w,r.h); });
+  // center line
+  ctx.fillStyle='#ffcc00'; for(let i=0;i<2000;i+=30){ ctx.fillRect(i-player.x+canvas.width/2,450-player.y+canvas.height/2,12,2); }
+  // buildings
+  ctx.fillStyle='#2a2a2a'; buildings.forEach(b=>{ ctx.fillRect(b.x-player.x+canvas.width/2,b.y-player.y+canvas.height/2,b.w,b.h); ctx.fillStyle='#333'; ctx.fillRect(b.x-player.x+canvas.width/2+5,b.y-player.y+canvas.height/2+5,b.w-10,b.h-10); ctx.fillStyle='#2a2a2a'; });
+  // people - Payback style dots with direction
+  people.forEach(p=>{
+    const sx=p.x-player.x+canvas.width/2, sy=p.y-player.y+canvas.height/2;
+    ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(sx,sy,5,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#000'; ctx.fillRect(sx-2,sy-2,4,4);
+  });
+  // cars
+  cars.forEach(c=> drawCar(c, player.inCar && player.car===c));
+  // player on foot
+  if(!player.inCar){
+    ctx.save(); ctx.translate(canvas.width/2,canvas.height/2); ctx.rotate(player.angle);
+    ctx.fillStyle='#111'; ctx.fillRect(-6,-8,12,16);
+    ctx.fillStyle='#8d5524'; ctx.beginPath(); ctx.arc(0,-10,6,0,Math.PI*2); ctx.fill();
+    if(player.hasGun){ ctx.fillStyle='#444'; ctx.fillRect(6,-2,10,2); }
+    ctx.restore();
   }
-  renderer.render(scene,camera);
+  // bullets
+  ctx.fillStyle='#ffff00'; bullets.forEach(b=>{ ctx.beginPath(); ctx.arc(b.x-player.x+canvas.width/2,b.y-player.y+canvas.height/2,3,0,Math.PI*2); ctx.fill(); });
 }
-animate();
-window.addEventListener('keydown',e=>keys[e.key.toLowerCase()]=true); window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
-document.getElementById('btn').onclick=()=>{
-  if(inCar){ inCar=false; kwame.visible=true; kwame.position.x=curCar.position.x+2.5; curCar=null; return; }
-  let c=null,d=4.5; cars.forEach(car=>{ const dist=car.position.distanceTo(kwame.position); if(dist<d){d=dist;c=car;} }); if(c){ inCar=true; curCar=c; }
-};
+
+function update(){
+  if(!player.inCar){
+    let mx=joyX, my=joyY;
+    if(keys['w']||keys['ArrowUp']) my=-1; if(keys['s']||keys['ArrowDown']) my=1; if(keys['a']||keys['ArrowLeft']) mx=-1; if(keys['d']||keys['ArrowRight']) mx=1;
+    if(mx||my){ player.angle=Math.atan2(my,mx); player.x+=mx*3; player.y+=my*3; }
+  } else {
+    const c=player.car;
+    let accel=0; if(keys['w']||joyY<-0.2) accel=0.18; if(keys['s']||joyY>0.2) accel=-0.12;
+    c.speed+=accel; c.speed*=0.97; c.speed=Math.max(-c.topSpeed/2,Math.min(c.topSpeed,c.speed));
+    if(Math.abs(c.speed)>0.5){
+      let turn=joyX*0.06; if(keys['a']) turn=-0.06; if(keys['d']) turn=0.06;
+      c.angle+=turn*(c.speed/c.topSpeed);
+    }
+    c.x+=Math.cos(c.angle)*c.speed; c.y+=Math.sin(c.angle)*c.speed;
+    player.x=c.x; player.y=c.y;
+    // police chase if wanted
+    if(wanted>0){ cars.filter(x=>x.type==='Police').forEach(p=>{ const ang=Math.atan2(c.y-p.y,c.x-p.x); p.angle+=(ang-p.angle)*0.05; p.speed+=0.05; p.speed=Math.min(p.topSpeed,p.speed); p.x+=Math.cos(p.angle)*p.speed; p.y+=Math.sin(p.angle)*p.speed; if(Math.hypot(p.x-c.x,p.y-c.y)<40){ hp-=0.3; document.getElementById('hp').innerText=Math.floor(hp); if(hp<=0) location.reload(); } }); }
+  }
+  people.forEach(p=>{ p.x+=Math.cos(p.angle)*p.speed; p.y+=Math.sin(p.angle)*p.speed; if(Math.random()<0.02) p.angle+= (Math.random()-0.5); });
+  bullets.forEach(b=>{ b.x+=Math.cos(b.angle)*8; b.y+=Math.sin(b.angle)*8; b.life--; });
+  bullets=bullets.filter(b=>b.life>0);
+}
+
+function enterCar(){
+  if(player.inCar){ player.inCar=false; player.car.speed=0; player.car=null; return; }
+  let close=null,md=50; cars.forEach(c=>{ const d=Math.hypot(c.x-player.x,c.y-player.y); if(d<md){md=d; close=c;} });
+  if(close){ player.inCar=true; player.car=close; if(close.type==='Ferrari F8'){ cash+=5000; document.getElementById('cash').innerText=cash; document.getElementById('mission').innerHTML='✅ Ferrari stolen! Now deliver to CBD without police! ⭐ Wanted +1'; wanted=1; document.getElementById('wanted').innerText=wanted; } }
+}
+
+function shoot(){
+  if(player.hasGun){
+    const ang=player.inCar?player.car.angle:player.angle;
+    const sx=player.inCar?player.car.x:player.x, sy=player.inCar?player.car.y:player.y;
+    bullets.push({x:sx+Math.cos(ang)*20,y:sy+Math.sin(ang)*20,angle:ang,life:40});
+    wanted=Math.min(3,wanted+1); document.getElementById('wanted').innerText=wanted;
+  }
+}
+
+function loop(){ draw(); update(); requestAnimationFrame(loop); }
+loop();
+window.addEventListener('keydown',e=>{ keys[e.key]=true; if(e.key==='e') enterCar(); if(e.key===' ') shoot(); });
+window.addEventListener('keyup',e=>keys[e.key]=false);
+document.getElementById('enter').onclick=enterCar;
+document.getElementById('shoot').onclick=shoot;
+document.getElementById('brake').onclick=()=>{ if(player.inCar) player.car.speed*=0.5; };
+// joystick
 const joy=document.getElementById('joy'), knob=document.getElementById('knob');
-function handle(e){ const r=joy.getBoundingClientRect(); const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left-55; const y=(e.touches?e.touches[0].clientY:e.clientY)-r.top-55; let nx=x,ny=y; const l=Math.sqrt(nx*nx+ny*ny); if(l>38){ nx=nx/l*38; ny=ny/l*38; } knob.style.left=32+nx+'px'; knob.style.top=32+ny+'px'; joyX=nx/38; joyY=ny/38; }
+function handle(e){ const r=joy.getBoundingClientRect(); const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left-55; const y=(e.touches?e.touches[0].clientY:e.clientY)-r.top-55; const l=Math.sqrt(x*x+y*y); let nx=x,ny=y; if(l>42){ nx=x/l*42; ny=y/l*42; } knob.style.left=32+nx+'px'; knob.style.top=32+ny+'px'; joyX=nx/42; joyY=ny/42; }
 joy.addEventListener('touchmove',e=>{e.preventDefault(); handle(e);}); joy.addEventListener('touchend',()=>{ knob.style.left='32px'; knob.style.top='32px'; joyX=0; joyY=0; });
 </script>
 </body>
