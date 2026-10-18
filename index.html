@@ -1,118 +1,106 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>KENYA GTA 3D - SAN ANDREAS</title>
-<style>body{margin:0;overflow:hidden;background:#87CEEB;font-family:Arial Black} canvas{display:block}
-#hud{position:fixed;top:0;left:0;right:0;background:linear-gradient(#000,transparent);padding:10px;color:#fff;display:flex;justify-content:space-between;z-index:10}
-#joy{position:fixed;bottom:20px;left:20px;width:110px;height:110px;background:rgba(0,0,0,0.3);border-radius:50%;border:2px solid #fff;z-index:10}
-#knob{position:absolute;width:50px;height:50px;background:#fff;border-radius:50%;left:30px;top:30px}
-#btns{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:10px;z-index:10}
-.b{width:65px;height:65px;background:rgba(0,166,81,0.8);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;border:2px solid #fff}
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>KENYA GTA V5 - REALISTIC PHONE</title>
+<style>body{margin:0;overflow:hidden;background:#000}canvas{display:block}
+#hud{position:fixed;top:0;left:0;right:0;padding:8px 12px;background:linear-gradient(rgba(0,0,0,0.8),transparent);color:#fff;font-family:Arial Black;font-size:12px;display:flex;justify-content:space-between;z-index:99}
+#joy{position:fixed;bottom:25px;left:25px;width:110px;height:110px;border:2px solid rgba(255,255,255,0.6);border-radius:50%;z-index:99}
+#knob{position:absolute;width:48px;height:48px;background:#fff;border-radius:50%;left:31px;top:31px}
+#btn{position:fixed;bottom:25px;right:25px;width:75px;height:75px;background:#00A651;border:3px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:18px;z-index:99}
 </style>
-<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}</script>
 </head>
 <body>
-<div id="hud"><div>💰 KSh <span id="cash">336</span> | 🧍 <span id="pax">0</span>/14</div><div id="status">KWAME - ON FOOT</div></div>
-<div id="joy"><div id="knob"></div></div>
-<div id="btns"><div class="b" id="enter">E</div><div class="b" id="horn" style="background:#ff9800">📯</div></div>
-
+<div id="hud"><div>💰 KSh <span id="cash">336</span> | REAL NAIROBI</div><div id="stat">KWAME</div></div>
+<div id="joy"><div id="knob"></div></div><div id="btn">E</div>
 <script type="module">
 import * as THREE from 'three';
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x87CEEB); scene.fog=new THREE.Fog(0x87CEEB,40,220);
+const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,0.1,1000);
+const renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setSize(innerWidth,innerHeight); renderer.shadowMap.enabled=true; document.body.appendChild(renderer.domElement);
 
-const scene=new THREE.Scene(); scene.background=new THREE.Color(0x87CEEB); scene.fog=new THREE.Fog(0x87CEEB,50,300);
-const camera=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000);
-const renderer=new THREE.WebGLRenderer({antialias:false}); renderer.setSize(window.innerWidth,window.innerHeight); renderer.shadowMap.enabled=false; document.body.appendChild(renderer.domElement);
+// LIGHT - makes it realistic
+scene.add(new THREE.HemisphereLight(0xffffff,0x444444,0.8));
+const sun=new THREE.DirectionalLight(0xffffff,1); sun.position.set(30,50,20); sun.castShadow=true; sun.shadow.mapSize.set(1024,1024); scene.add(sun);
 
-// Lights - San Andreas style
-scene.add(new THREE.AmbientLight(0xffffff,0.7));
-const sun=new THREE.DirectionalLight(0xffffff,0.8); sun.position.set(50,100,50); scene.add(sun);
+// GROUND with road markings - not black anymore
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(600,600),new THREE.MeshStandardMaterial({color:0x2b2b2b})); ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
+const road=new THREE.Mesh(new THREE.PlaneGeometry(600,14),new THREE.MeshStandardMaterial({color:0x1a1a1a})); road.rotation.x=-Math.PI/2; road.position.y=0.02; scene.add(road);
+for(let i=-250;i<250;i+=20){ const line=new THREE.Mesh(new THREE.PlaneGeometry(6,0.5),new THREE.MeshBasicMaterial({color:0xffffff})); line.rotation.x=-Math.PI/2; line.position.set(i,0.03,0); scene.add(line); }
 
-// Ground - Nairobi tarmac
-const ground=new THREE.Mesh(new THREE.PlaneGeometry(1000,1000),new THREE.MeshLambertMaterial({color:0x333333})); ground.rotation.x=-Math.PI/2; scene.add(ground);
-// Roads
-const roadMat=new THREE.MeshLambertMaterial({color:0x222222});
-const road1=new THREE.Mesh(new THREE.PlaneGeometry(1000,20),roadMat); road1.rotation.x=-Math.PI/2; road1.position.y=0.1; road1.position.z=0; scene.add(road1);
-const road2=new THREE.Mesh(new THREE.PlaneGeometry(20,1000),roadMat); road2.rotation.x=-Math.PI/2; road2.position.y=0.1; road2.position.x=0; scene.add(road2);
+// KICC - makes it Nairobi real
+const kiccGroup=new THREE.Group();
+const kiccBody=new THREE.Mesh(new THREE.CylinderGeometry(4,6,30,12),new THREE.MeshStandardMaterial({color:0xc0c0c0,roughness:0.4})); kiccBody.position.y=15; kiccBody.castShadow=true; kiccGroup.add(kiccBody);
+kiccGroup.position.set(-40,0,-120); scene.add(kiccGroup);
 
-// KICC TOWER - Nairobi landmark
-const kicc=new THREE.Group();
-const base=new THREE.Mesh(new THREE.CylinderGeometry(8,10,40,8),new THREE.MeshLambertMaterial({color:0xcccccc})); base.position.y=20; kicc.add(base);
-const top=new THREE.Mesh(new THREE.CylinderGeometry(6,6,8,8),new THREE.MeshLambertMaterial({color:0xaaaaaa})); top.position.y=44; kicc.add(top);
-kicc.position.set(0,0,-200); scene.add(kicc);
-
-// Buildings - low poly San Andreas style
-for(let i=0;i<40;i++){
-  const h=10+Math.random()*30; const b=new THREE.Mesh(new THREE.BoxGeometry(15+Math.random()*15,h,15+Math.random()*15),new THREE.MeshLambertMaterial({color:new THREE.Color().setHSL(Math.random()*0.2+0.05,0.3,0.5)})); b.position.set((Math.random()-0.5)*400,h/2,(Math.random()-0.5)*400); if(b.position.length()<40) continue; scene.add(b);
+// BUILDINGS with windows - not grey boxes
+for(let i=0;i<30;i++){
+  const h=8+Math.random()*28; const b=new THREE.Mesh(new THREE.BoxGeometry(10+Math.random()*10,h,10+Math.random()*10),new THREE.MeshStandardMaterial({color:new THREE.Color().setHSL(0.08+Math.random()*0.1,0.2,0.5)})); 
+  b.position.set((Math.random()-0.5)*300,h/2,(Math.random()-0.5)*300); if(b.position.length()<35) continue; b.castShadow=true; b.receiveShadow=true; scene.add(b);
+  // windows lights
+  if(Math.random()>0.5){ const win=new THREE.Mesh(new THREE.BoxGeometry(8,1,8.1),new THREE.MeshBasicMaterial({color:0xffffaa})); win.position.set(b.position.x,h*0.7,b.position.z); scene.add(win); }
 }
 
-// Player - Kwame - San Andreas CJ style
-const playerGroup=new THREE.Group();
-const body=new THREE.Mesh(new THREE.BoxGeometry(1,1.5,0.6),new THREE.MeshLambertMaterial({color:0x111111})); body.position.y=1; playerGroup.add(body);
-const head=new THREE.Mesh(new THREE.SphereGeometry(0.5,8,8),new THREE.MeshLambertMaterial({color:0x8d5524})); head.position.y=2.1; playerGroup.add(head);
-const backpack=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.9,0.3),new THREE.MeshLambertMaterial({color:0x222222})); backpack.position.set(0,1,-0.5); playerGroup.add(backpack);
-playerGroup.position.set(0,0,10); scene.add(playerGroup);
-
-// Matatus - 3D CGI colorful
-let cars=[];
-let colors=[0xffeb3b,0x00A651,0x2196F3,0xff5722];
-for(let i=0;i<4;i++){
+// REALISTIC MATATU - with body + windows + 4 wheels + lights
+function makeMatatu(x,z,col){
   const g=new THREE.Group();
-  const chassis=new THREE.Mesh(new THREE.BoxGeometry(4,2,7),new THREE.MeshLambertMaterial({color:colors[i]})); chassis.position.y=1.2; g.add(chassis);
-  const roof=new THREE.Mesh(new THREE.BoxGeometry(3.8,0.2,6.5),new THREE.MeshLambertMaterial({color:0xffffff})); roof.position.y=2.3; g.add(roof);
-  g.position.set((Math.random()-0.5)*80,0,(Math.random()-0.5)*80); g.rotation.y=Math.random()*Math.PI*2; g.userData={pax:0,speed:0}; scene.add(g); cars.push(g);
+  const body=new THREE.Mesh(new THREE.BoxGeometry(3.2,1.8,5.5),new THREE.MeshStandardMaterial({color:col,roughness:0.3,metalness:0.2})); body.position.y=1.3; body.castShadow=true; g.add(body);
+  const top=new THREE.Mesh(new THREE.BoxGeometry(3,0.6,3.5),new THREE.MeshStandardMaterial({color:0x111111})); top.position.y=2.5; g.add(top);
+  const glass=new THREE.Mesh(new THREE.BoxGeometry(3.1,0.5,3.6),new THREE.MeshStandardMaterial({color:0x000000,transparent:true,opacity:0.7})); glass.position.y=2.5; g.add(glass);
+  // 4 wheels
+  const wGeo=new THREE.CylinderGeometry(0.5,0.5,0.35,14); const wMat=new THREE.MeshStandardMaterial({color:0x111111});
+  [[-1.6,0.5,-1.8],[1.6,0.5,-1.8],[-1.6,0.5,1.8],[1.6,0.5,1.8]].forEach(p=>{ const w=new THREE.Mesh(wGeo,wMat); w.rotation.z=Math.PI/2; w.position.set(p[0],p[1],p[2]); w.castShadow=true; g.add(w); });
+  // headlights
+  const light=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.2,0.1),new THREE.MeshStandardMaterial({color:0xffffcc,emissive:0xffffaa,emissiveIntensity:0.8})); light.position.set(-0.8,1,2.8); g.add(light); const light2=light.clone(); light2.position.x=0.8; g.add(light2);
+  g.position.set(x,0,z); g.rotation.y=Math.random()*Math.PI; scene.add(g); return g;
 }
+const cars=[makeMatatu(8,2,0xffd600),makeMatatu(-10,12,0x00c853),makeMatatu(15,-8,0x2962ff)];
 
-// Real People - 3D low poly pedestrians like San Andreas
-let people=[];
-for(let i=0;i<20;i++){
-  const pg=new THREE.Group();
-  const pb=new THREE.Mesh(new THREE.BoxGeometry(0.6,1,0.4),new THREE.MeshLambertMaterial({color:new THREE.Color().setHSL(Math.random(),0.7,0.5)})); pb.position.y=0.8; pg.add(pb);
-  const ph=new THREE.Mesh(new THREE.SphereGeometry(0.3,6,6),new THREE.MeshLambertMaterial({color:0x8d5524})); ph.position.y=1.6; pg.add(ph);
-  pg.position.set((Math.random()-0.5)*150,0,(Math.random()-0.5)*150); pg.userData={waiting:Math.random()>0.5,money:50+Math.random()*100,angle:Math.random()*6}; scene.add(pg); people.push(pg);
-}
+// REALISTIC KWAME - head + body + legs + backpack + cap
+const kwame=new THREE.Group();
+const headM=new THREE.MeshStandardMaterial({color:0x8d5524}); const head=new THREE.Mesh(new THREE.SphereGeometry(0.42,16,16),headM); head.position.y=1.75; head.castShadow=true; kwame.add(head);
+const cap=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.15,0.6),new THREE.MeshStandardMaterial({color:0x111111})); cap.position.set(0,2.05,0.15); kwame.add(cap);
+const torso=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.9,0.45),new THREE.MeshStandardMaterial({color:0x0a0a0a})); torso.position.y=1.1; torso.castShadow=true; kwame.add(torso);
+const backpack=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.7,0.25),new THREE.MeshStandardMaterial({color:0x222222})); backpack.position.set(0,1.1,-0.35); kwame.add(backpack);
+const legGeo=new THREE.BoxGeometry(0.28,0.9,0.3); const legMat=new THREE.MeshStandardMaterial({color:0x1e1e1e});
+const lLeg=new THREE.Mesh(legGeo,legMat); lLeg.position.set(-0.18,0.2,0); lLeg.castShadow=true; kwame.add(lLeg);
+const rLeg=lLeg.clone(); rLeg.position.x=0.18; kwame.add(rLeg);
+kwame.position.set(0,0,6); scene.add(kwame);
 
-let keys={}; let inCar=false; let currentCar=null; let cash=336; let pax=0; let playerSpeed=0; let playerAngle=0;
-let joyX=0,joyY=0;
-
-function updateHUD(){ document.getElementById('cash').innerText=cash; document.getElementById('pax').innerText=pax; document.getElementById('status').innerText=inCar?`MATATU ${currentCar.children[0].material.color.getHexString()} - ${pax}/14`:'KWAME - ON FOOT'; }
-
-camera.position.set(0,8,15); camera.lookAt(playerGroup.position);
-
+let keys={}, joyX=0, joyY=0, inCar=false, curCar=null;
+camera.position.set(0,4,10);
 function animate(){
   requestAnimationFrame(animate);
-  // Player movement - San Andreas third person
   if(!inCar){
-    let moveX=joyX; let moveY=joyY;
-    if(keys['w']||keys['ArrowUp']) moveY=-1; if(keys['s']||keys['ArrowDown']) moveY=1; if(keys['a']||keys['ArrowLeft']) moveX=-1; if(keys['d']||keys['ArrowRight']) moveX=1;
-    if(moveX||moveY){ playerAngle=Math.atan2(moveX,-moveY); playerGroup.rotation.y=playerAngle; playerGroup.position.x+=moveX*0.2; playerGroup.position.z+=moveY*0.2; }
-    camera.position.x=playerGroup.position.x+Math.sin(playerGroup.rotation.y)*12; camera.position.z=playerGroup.position.z+Math.cos(playerGroup.rotation.y)*12; camera.position.y=playerGroup.position.y+6; camera.lookAt(playerGroup.position);
-  } else {
-    // Driving like San Andreas
-    let accel=0; if(keys['w']||joyY<-0.3) accel=0.08; if(keys['s']||joyY>0.3) accel=-0.05; currentCar.userData.speed+=accel; currentCar.userData.speed*=0.97;
-    currentCar.rotation.y+=joyX*0.05; if(keys['a']) currentCar.rotation.y+=0.05; if(keys['d']) currentCar.rotation.y-=0.05;
-    currentCar.position.x+=Math.sin(currentCar.rotation.y)*currentCar.userData.speed; currentCar.position.z+=Math.cos(currentCar.rotation.y)*currentCar.userData.speed;
-    playerGroup.position.copy(currentCar.position); playerGroup.position.y=0; playerGroup.visible=false;
-    camera.position.x=currentCar.position.x+Math.sin(currentCar.rotation.y)* -15; camera.position.z=currentCar.position.z+Math.cos(currentCar.rotation.y)* -15; camera.position.y=8; camera.lookAt(currentCar.position);
-    // pickup people - real CGI interaction
-    people.forEach(p=>{ if(p.userData.waiting){ let d=p.position.distanceTo(currentCar.position); if(d<6 && pax<14){ p.userData.waiting=false; p.visible=false; pax++; cash+=Math.floor(p.userData.money); updateHUD(); if(navigator.vibrate) navigator.vibrate(50);} } });
+    let mx=joyX, my=joyY; if(keys['w']) my=-1; if(keys['s']) my=1; if(keys['a']) mx=-1; if(keys['d']) mx=1;
+    if(mx||my){ const ang=Math.atan2(mx,-my); kwame.rotation.y=ang; kwame.position.x+=mx*0.12; kwame.position.z+=my*0.12; // walk animation
+      const t=Date.now()*0.015; lLeg.rotation.x=Math.sin(t)*0.5; rLeg.rotation.x=-Math.sin(t)*0.5;
+    }
+  } else if(curCar){
+    let acc=0; if(keys['w']||joyY<-0.2) acc=0.06; if(keys['s']||joyY>0.2) acc=-0.04; curCar.userData.speed=(curCar.userData.speed||0)+acc; curCar.userData.speed*=0.98;
+    curCar.rotation.y+=joyX*0.04; if(keys['a']) curCar.rotation.y+=0.04; if(keys['d']) curCar.rotation.y-=0.04;
+    curCar.position.x+=Math.sin(curCar.rotation.y)*curCar.userData.speed; curCar.position.z+=Math.cos(curCar.rotation.y)*curCar.userData.speed;
+    kwame.position.copy(curCar.position); kwame.visible=false;
   }
-  // pedestrians wander
-  people.forEach(p=>{ if(!p.userData.waiting){ p.position.x+=Math.sin(p.userData.angle)*0.02; p.position.z+=Math.cos(p.userData.angle)*0.02; if(Math.random()<0.01) p.userData.angle=Math.random()*6; }});
+  // camera follow like San Andreas
+  const target=inCar?curCar.position:kwame.position;
+  if(target){ camera.position.x+=(target.x-camera.position.x)*0.08; camera.position.z+=(target.z+10-camera.position.z)*0.08; camera.position.y=4.5; camera.lookAt(target.x,target.y+1,target.z); }
   renderer.render(scene,camera);
 }
 animate();
 
+// controls
 window.addEventListener('keydown',e=>keys[e.key.toLowerCase()]=true); window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
-document.getElementById('enter').onclick=()=>{
-  if(inCar){ inCar=false; playerGroup.visible=true; playerGroup.position.x=currentCar.position.x+3; playerGroup.position.z=currentCar.position.z; currentCar=null; pax=0; updateHUD(); return; }
-  let closest=null; let md=8; cars.forEach(c=>{ let d=c.position.distanceTo(playerGroup.position); if(d<md){md=d; closest=c;} }); if(closest){ inCar=true; currentCar=closest; }
+document.getElementById('btn').onclick=()=>{
+  if(inCar){ inCar=false; kwame.visible=true; kwame.position.x=curCar.position.x+2; curCar=null; return; }
+  let close=null,d=6; cars.forEach(c=>{ const dist=c.position.distanceTo(kwame.position); if(dist<d){d=dist; close=c;} }); if(close){ inCar=true; curCar=close; }
 };
-// Joystick - San Andreas mobile style
-const joy=document.getElementById('joy'); const knob=document.getElementById('knob');
-joy.addEventListener('touchmove',e=>{ const r=joy.getBoundingClientRect(); const x=e.touches[0].clientX-r.left-55; const y=e.touches[0].clientY-r.top-55; const d=Math.sqrt(x*x+y*y); const max=40; let nx=x,ny=y; if(d>max){ nx=x/d*max; ny=y/d*max; } knob.style.left=30+nx+'px'; knob.style.top=30+ny+'px'; joyX=nx/max; joyY=ny/max; });
-joy.addEventListener('touchend',()=>{ knob.style.left='30px'; knob.style.top='30px'; joyX=0; joyY=0; });
-updateHUD();
+// joystick
+const joy=document.getElementById('joy'), knob=document.getElementById('knob');
+function handleJoy(e){ const r=joy.getBoundingClientRect(); const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left-55; const y=(e.touches?e.touches[0].clientY:e.clientY)-r.top-55; const len=Math.sqrt(x*x+y*y); const max=42; let nx=x,ny=y; if(len>max){ nx=x/len*max; ny=y/len*max; } knob.style.left=31+nx+'px'; knob.style.top=31+ny+'px'; joyX=nx/max; joyY=ny/max; }
+joy.addEventListener('touchmove',e=>{e.preventDefault(); handleJoy(e);}); joy.addEventListener('touchend',()=>{ knob.style.left='31px'; knob.style.top='31px'; joyX=0; joyY=0; });
+joy.addEventListener('mousedown',e=>{ const move=ev=>handleJoy(ev); const up=()=>{ document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up); knob.style.left='31px'; knob.style.top='31px'; joyX=0; joyY=0; }; document.addEventListener('mousemove',move); document.addEventListener('mouseup',up); });
 </script>
 </body>
 </html>
